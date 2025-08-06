@@ -1,34 +1,190 @@
+:root {
+    --bg-color: #f0f8ff; /* 背景色 (アリスブルー) */
+    --primary-color: #a7c7e7; /* メインのパステルブルー */
+    --primary-hover-color: #9ab8d9; /* ホバー時の色 */
+    --danger-color: #ffb3ba; /* ログアウト/削除ボタン (パステルレッド) */
+    --danger-hover-color: #ff9aa2;
+    --text-color: #333;
+    --container-bg: #ffffff;
+    --border-color: #dce1e6;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+}
+
 body {
-    font-family: sans-serif;
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #f0f0f0;
+    background-color: var(--bg-color);
+    padding: 20px;
+    margin: 0;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
 h1 {
-    color: #333;
+    color: var(--text-color);
+    margin-bottom: 20px;
 }
 
-.upload-container {
-    margin: 20px 0;
+h2 {
+    color: var(--text-color);
+    text-align: center;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-top: 0;
 }
 
-#flashcard-container {
+.container {
+    width: 100%;
+    max-width: 600px;
+    background-color: var(--container-bg);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px var(--shadow-color);
+    margin-top: 20px;
+    box-sizing: border-box;
+}
+
+.hidden {
+    display: none;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 1em;
+}
+
+input[type="file"] {
+    padding: 5px;
+}
+
+button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+}
+button:hover {
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    width: 100%;
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover-color);
+}
+
+.auth-buttons {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+.auth-buttons button {
+    flex: 1;
+}
+
+#auth-message {
+    text-align: center;
+    color: #e74c3c;
+    margin-top: 15px;
+    min-height: 1.2em;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#logout-btn {
+    background-color: var(--danger-color);
+    color: white;
+}
+#logout-btn:hover {
+    background-color: var(--danger-hover-color);
+}
+
+.upload-area {
+    display: flex;
+    flex-direction: column;
     gap: 20px;
 }
 
+#my-cards-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#my-cards-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+#my-cards-list li:hover {
+    background-color: #f9f9f9;
+}
+#my-cards-list li:last-child {
+    border-bottom: none;
+}
+.delete-card-set {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    background-color: var(--danger-color);
+    color: white;
+}
+.delete-card-set:hover {
+    background-color: var(--danger-hover-color);
+}
+
+#flashcard-display-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+#flashcard-container {
+    width: 100%;
+    max-width: 450px;
+    height: 300px;
+    perspective: 1000px;
+}
+
 .flashcard {
-    width: 300px;
-    height: 200px;
+    width: 100%;
+    height: 100%;
     position: relative;
     transform-style: preserve-3d;
     transition: transform 0.6s;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .flashcard.flipped {
@@ -44,19 +200,83 @@ h1 {
     justify-content: center;
     align-items: center;
     text-align: center;
-    border-radius: 10px;
+    border-radius: 12px;
     box-sizing: border-box;
     padding: 20px;
-    font-size: 1.2em;
+    font-size: 1.3em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px var(--shadow-color);
 }
 
 .card-front {
-    background-color: #fff;
-    color: #333;
+    background-color: var(--container-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 
 .card-back {
-    background-color: #3498db;
-    color: #fff;
+    background-color: var(--primary-color);
+    color: white;
     transform: rotateY(180deg);
+}
+
+.navigation-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+    flex-wrap: wrap; /* 画面が狭い時に折り返す */
+    justify-content: center;
+}
+.navigation-buttons button, .back-button {
+    background-color: #fff;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+.navigation-buttons button:hover, .back-button:hover {
+    background-color: #f8f8f8;
+}
+
+#card-counter {
+    margin-top: 15px;
+    font-size: 1.1em;
+    color: #555;
+}
+
+
+/* --- レスポンシブ対応 (ここから下を追記) --- */
+@media (max-width: 680px) {
+    body {
+        padding: 10px; /* bodyの余白を小さく */
+    }
+
+    .container {
+        padding: 20px; /* コンテナの余白を小さく */
+        margin-top: 15px;
+    }
+
+    h1 {
+        font-size: 1.8em; /* 見出しを少し小さく */
+    }
+    
+    h2 {
+        font-size: 1.3em;
+    }
+
+    /* フラッシュカードのサイズを画面幅に合わせる */
+    #flashcard-container {
+        width: 90vw; /* 画面幅の90% */
+        height: 60vw; /* 画面幅の60%で、高さを可変に */
+        max-height: 300px;
+    }
+    
+    .card-face {
+        font-size: 1.1em; /* カード内の文字を少し小さく */
+    }
+
+    /* 認証ボタンを縦に並べる */
+    .auth-buttons {
+        flex-direction: column;
+    }
 }

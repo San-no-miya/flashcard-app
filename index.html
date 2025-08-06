@@ -9,13 +9,70 @@
 <body>
     <h1>フラッシュカード</h1>
 
-    <div class="upload-container">
-        <label for="csv-file">CSVファイルをアップロード:</label>
-        <input type="file" id="csv-file" accept=".csv">
+    <!-- ユーザー認証画面 -->
+    <div id="auth-container" class="container">
+        <h2>ログイン / 新規登録</h2>
+        <div class="form-group">
+            <input type="text" id="username" placeholder="ユーザーID">
+        </div>
+        <div class="form-group">
+            <input type="password" id="password" placeholder="パスワード">
+        </div>
+        <div class="auth-buttons">
+            <button id="login-btn" class="btn-primary">ログイン</button>
+            <button id="register-btn">新規登録</button>
+        </div>
+        <p id="auth-message"></p>
     </div>
 
-    <div id="flashcard-container">
+    <!-- メインメニュー画面 (初期状態では非表示) -->
+    <div id="main-menu-container" class="container hidden">
+        <h2>ようこそ, <span id="logged-in-user"></span> さん!</h2>
+        <div class="menu-buttons">
+            <button id="show-upload-btn" class="btn-primary">新しいカードをアップロード</button>
+            <button id="show-my-cards-btn" class="btn-primary">「Myカード」から選ぶ</button>
+            <button id="logout-btn">ログアウト</button>
         </div>
+    </div>
+
+    <!-- アップロード画面 (初期状態では非表示) -->
+    <div id="upload-section" class="container hidden">
+        <h2>CSVファイルからカードを作成</h2>
+        <div class="upload-area">
+            <div class="form-group">
+                <label for="csv-file">1. CSVファイルを選択:</label>
+                <input type="file" id="csv-file" accept=".csv">
+            </div>
+            <div class="form-group">
+                <label for="card-set-name">2. カードセットの名前を入力:</label>
+                <input type="text" id="card-set-name" placeholder="例: 英単語 Chapter 1">
+            </div>
+            <button id="save-card-set-btn" class="btn-primary">3. この名前で保存</button>
+        </div>
+        <button class="back-button" style="margin-top: 20px;">メインメニューに戻る</button>
+    </div>
+    
+    <!-- Myカード選択画面 (初期状態では非表示) -->
+    <div id="my-cards-section" class="container hidden">
+        <h2>「Myカード」一覧</h2>
+        <div id="my-cards-list"></div>
+        <button class="back-button" style="margin-top: 20px;">メインメニューに戻る</button>
+    </div>
+
+    <!-- フラッシュカード学習画面 (初期状態では非表示) -->
+    <div id="flashcard-section" class="container hidden">
+        <div id="flashcard-display-area">
+            <div id="flashcard-container">
+                <!-- JavaScriptによってカードがここに生成されます -->
+            </div>
+            <div id="card-counter"></div>
+            <div class="navigation-buttons">
+                 <button id="flip-card-btn">カードをめくる</button>
+                 <button id="next-card-btn">次へ進む</button>
+            </div>
+        </div>
+        <button class="back-button" style="margin-top: 20px;">メインメニューに戻る</button>
+    </div>
 
     <script src="script.js"></script>
 </body>
