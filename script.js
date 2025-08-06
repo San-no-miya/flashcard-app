@@ -46,10 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- 機能 ----
 
-    /**
-     * 指定された画面を表示し、他をすべて隠す
-     * @param {string} screenName 表示する画面のキー (screensオブジェクトのキー)
-     */
     function showScreen(screenName) {
         Object.values(screens).forEach(screen => screen.classList.add('hidden'));
         if (screens[screenName]) {
@@ -57,26 +53,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /** ユーザーデータをlocalStorageから取得 */
     function getUsers() {
         return JSON.parse(localStorage.getItem('flashcard_users') || '{}');
     }
 
-    /** ユーザーデータをlocalStorageに保存 */
     function saveUsers(users) {
         localStorage.setItem('flashcard_users', JSON.stringify(users));
     }
     
-    /** カードセットデータをlocalStorageから取得 */
     function getCardSets() {
         return JSON.parse(localStorage.getItem('flashcard_sets') || '{}');
     }
     
-    /** カードセットデータをlocalStorageに保存 */
     function saveCardSets(sets) {
         localStorage.setItem('flashcard_sets', JSON.stringify(sets));
     }
-
 
     // --- ユーザー認証 ---
     registerBtn.addEventListener('click', () => {
@@ -91,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authMessage.textContent = 'このIDは既に使用されています。';
             return;
         }
-        users[username] = password; // 簡単なため平文保存。実際はハッシュ化推奨
+        users[username] = password;
         saveUsers(users);
         authMessage.textContent = '登録が完了しました。ログインしてください。';
         usernameInput.value = '';
@@ -116,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     logoutBtn.addEventListener('click', () => {
         loggedInUser = null;
-        // 状態をリセット
         currentCards = [];
         uploadedCards = [];
         currentCardIndex = 0;
@@ -144,7 +134,8 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (e) => {
             try {
                 const text = e.target.result;
-                uploadedCards = parseCSVWithQuotes(text);
+                // ★修正点1：より堅牢なCSV解析関数を呼び出す
+                uploadedCards = parseCSV(text);
                 if (uploadedCards.length > 0) {
                     alert(`${uploadedCards.length}枚のカードが読み込まれました。\n名前を付けて保存してください。`);
                     cardSetNameInput.focus();
@@ -160,23 +151,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     /**
-     * ダブルクォーテーションで囲まれた改行を含むCSVをパースする
+     * ★修正点1：改行を含むCSVを正しく解析する関数
+     * ダブルクォーテーションで囲まれたフィールド内の改行を処理します。
      * @param {string} text CSVのテキスト
      * @returns {Array<{front: string, back: string}>}
      */
-    function parseCSVWithQuotes(text) {
-        const pattern = /(?:"([^"]*(?:""[^"]*)*)"|([^",\n]+))(?=,|\n|$)/g;
-        let lines = text.trim().split('\n');
-        let cards = [];
+    function parseCSV(text) {
+        const lines = text.trim().split('\n');
+        const cards = [];
+        let currentRecord = '';
 
         for (const line of lines) {
-            if (line.trim() === '') continue;
+            currentRecord += line;
+            // 現在のレコード内のダブルクォーテーションの数が偶数なら、レコードの終端と判断
+            if ((currentRecord.match(/"/g) || []).length % 2 === 0) {
+                const commaIndex = currentRecord.indexOf(',');
+                if (commaIndex > -1) {
+                    let front = currentRecord.substring(0, commaIndex);
+                    let back = currentRecord.substring(commaIndex + 1);
 
-            const matches = line.match(pattern);
-            if (matches && matches.length >= 2) {
-                const front = matches[0].replace(/^"|"$/g, '').replace(/""/g, '"');
-                const back = matches[1].replace(/^"|"$/g, '').replace(/""/g, '"');
-                cards.push({ front, back });
+                    // 前後のダブルクォーテーションを削除し、内部の連続するダブルクォーテーションを1つに変換
+                    front = front.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+                    back = back.trim().replace(/^"|"$/g, '').replace(/""/g, '"');
+                    
+                    if (front && back) {
+                       cards.push({ front, back });
+                    }
+                }
+                // レコードをリセット
+                currentRecord = '';
+            } else {
+                // クォート内なので、改行文字を追加して次の行を待つ
+                currentRecord += '\n';
             }
         }
         return cards;
@@ -241,16 +247,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ul.addEventListener('click', (e) => {
             const target = e.target;
             if (target.classList.contains('delete-card-set')) {
-                // 削除ボタンがクリックされた場合
-                e.stopPropagation(); // liへのイベント伝播を停止
+                e.stopPropagation();
                 const setName = target.dataset.setName;
                 if (confirm(`「${setName}」を本当に削除しますか？`)) {
                     delete allCardSets[loggedInUser][setName];
                     saveCardSets(allCardSets);
-                    displayMyCardSets(); // リストを再描画
+                    displayMyCardSets();
                 }
             } else if (target.closest('li')) {
-                // li要素（またはその子要素）がクリックされた場合
                 const setName = target.closest('li').dataset.setName;
                 startFlashcards(userSets[setName]);
             }
@@ -259,8 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- フラッシュカード学習 ---
     function startFlashcards(cards) {
-        currentCards = [...cards]; // カードデータをコピー
-        currentCardIndex = 0;
+        currentCards = [...cards];
+        currentCardIndex = 0; // 必ずインデックスをリセット
         if (currentCards.length > 0) {
             showScreen('flashcard');
             renderFlashcard(currentCardIndex);
@@ -270,35 +274,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderFlashcard(index) {
-        flashcardContainer.innerHTML = ''; // コンテナをクリア
-        nextCardBtn.textContent = '次へ進む';
-        flipCardBtn.style.display = 'inline-block';
-        // 「戻る」ボタン用のクリックイベントをリセット
-        nextCardBtn.onclick = handleNextCard;
-
+        flashcardContainer.innerHTML = '';
+        
         if (index >= currentCards.length) {
+            // 全カード終了時の表示
             flashcardContainer.innerHTML = '<h2>すべてのカードが終了しました！</h2>';
             cardCounter.textContent = '完了';
             nextCardBtn.textContent = 'Myカード一覧に戻る';
             flipCardBtn.style.display = 'none';
-            // 終了時の「戻る」ボタンの機能を設定
-            nextCardBtn.onclick = () => {
-                displayMyCardSets();
-                showScreen('myCards');
-            };
-            return;
+        } else {
+            // 通常のカード表示
+            nextCardBtn.textContent = '次へ進む';
+            flipCardBtn.style.display = 'inline-block';
+            
+            const cardData = currentCards[index];
+            const flashcard = document.createElement('div');
+            flashcard.className = 'flashcard';
+            // 新しいカードは必ず表向きで生成
+            flashcard.innerHTML = `
+                <div class="card-face card-front">${cardData.front}</div>
+                <div class="card-face card-back">${cardData.back}</div>
+            `;
+            flashcardContainer.appendChild(flashcard);
+    
+            cardCounter.textContent = `${index + 1} / ${currentCards.length}`;
         }
-
-        const cardData = currentCards[index];
-        const flashcard = document.createElement('div');
-        flashcard.className = 'flashcard';
-        flashcard.innerHTML = `
-            <div class="card-face card-front">${cardData.front}</div>
-            <div class="card-face card-back">${cardData.back}</div>
-        `;
-        flashcardContainer.appendChild(flashcard);
-
-        cardCounter.textContent = `${index + 1} / ${currentCards.length}`;
     }
 
     function handleFlipCard() {
@@ -307,16 +307,27 @@ document.addEventListener('DOMContentLoaded', () => {
             flashcard.classList.toggle('flipped');
         }
     }
-
+    
+    /**
+     * ★修正点2：カードを進めるロジックをシンプル化
+     * 状態に応じて1つの関数内で処理を分岐させることで、イベントの重複を防ぐ
+     */
     function handleNextCard() {
-        currentCardIndex++;
-        renderFlashcard(currentCardIndex);
+        if (currentCardIndex >= currentCards.length) {
+            // 既に全カードが終了している場合、ボタンは「一覧に戻る」機能を持つ
+            displayMyCardSets();
+            showScreen('myCards');
+        } else {
+            // 通常時はインデックスを1つ進めて次のカードを表示する
+            currentCardIndex++;
+            renderFlashcard(currentCardIndex);
+        }
     }
     
-    // イベントリスナーを設定
+    // イベントリスナーは最初に1度だけ登録する
     flipCardBtn.addEventListener('click', handleFlipCard);
     nextCardBtn.addEventListener('click', handleNextCard);
 
     // ---- 初期化 ----
-    showScreen('auth'); // 最初に認証画面を表示
+    showScreen('auth');
 });
